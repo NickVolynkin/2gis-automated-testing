@@ -1,5 +1,7 @@
 package io.github.nickvolynkin.dgis;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -8,35 +10,55 @@ import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.NoSuchElementException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import static io.github.nickvolynkin.dgis.DGDriver.SearchResults.*;
 
 import java.util.concurrent.TimeUnit;
 
 /**
  * Leaflet marker behaviour on ambiguous objects.
- * */
-public class LeafletMarkerBehaviourOnAmbiguousObjects {
+ */
+public class LeafletMarkerTests {
+
+    public static final int ALLOWED_RANGE = 5;
+    private static final Logger LOG = LoggerFactory.getLogger(LeafletMarkerTests.class);
+
     //DATA
-    String searchString = "главный вокзал";
     /**
-     * Новосибирск-Главный, железнодорожный вокзал
+     * используемый поисковый запрос
      */
-    String firmID = "141265769369926";
+    String searchString;
+    /**
+     * ID организации
+     */
+    String firmID;
+    /**
+     * ID здания
+     */
+    String geoID;
+    Vector3d expectedCzarTransform;
+    //END OF DATA
 
 
-    String geoID = "141373143526113";
-    Vector3d expectedCzarTransform = new Vector3d(769, 289, 0);
     private DGDriver driver;
     //    private StringBuffer verificationErrors = new StringBuffer();
     private boolean acceptNextAlert = true;
-    //END OF DATA
 
     @Before
     public void setUp() throws Exception {
-        driver = new DGDriver();
+        driver = new DGDriver(); //extends FirefoxDriver
         driver.manage().timeouts().implicitlyWait(1000, TimeUnit.SECONDS);
+        LogManager.getRootLogger().setLevel(Level.INFO);
+
+        searchString = "главный вокзал";
+        firmID = "141265769369926";
+        geoID = "141373143526113";
+        expectedCzarTransform = new Vector3d(769, 289, 0);
     }
 
-    @Test
+//    @Test
     public void standardTransform() {
         driver.homepage();
 
@@ -47,61 +69,82 @@ public class LeafletMarkerBehaviourOnAmbiguousObjects {
     }
 
     @Test
-    public void lmbao01() throws Exception {
+    public void lmbao01() {
+        LOG.info("lmbao-01 started");
+
         driver.homepage();
         driver.searchFor(searchString);
-//        driver.searchResults.clickCategory(io.github.nickvolynkin.dgis.DGDriver.SearchResults.TRANSPORT);
         driver.searchResults.clickItem(firmID);
-//        driver.findElement(By.linkText("Новосибирск-Главный, железнодорожный вокзал")).click();
-//        driver.clickCurrentFirmCardAddress();
-        System.out.println(driver.firmCard.getName());
-
+        LOG.info("actual firm name: " + driver.firmCard.getName());
         driver.firmCard.clickAddress();
 
+        assertLeafletMarkerPosition(expectedCzarTransform);
+
+        LOG.info("lmbao-01 finished");
+
+//        Thread.sleep(180000);
+    }
+
+    private void assertLeafletMarkerPosition(Vector3d expectedTransform) {
         Vector3d markerTransform = driver.leafletMarker.getCzarTransform();
-        String actual = markerTransform.toString();
-        System.out.println(actual);
-        Assert.assertTrue(markerTransform.inRange(expectedCzarTransform, 2));
-
-        System.out.print("finished");
-
-        Thread.sleep(180000);
+        LOG.info("actual transform3d: " + markerTransform.toString());
+        LOG.info("expected transform3d: " + expectedTransform.toString());
+        Assert.assertTrue(markerTransform.inRange(expectedTransform, ALLOWED_RANGE));
     }
 
     @Test
-    public void lmbao02() throws Exception {
+    public void lmbao02() {
         driver.homepage();
+
         driver.searchFor(searchString);
-        driver.searchResults.clickCategory(DGDriver.SearchResults.GEO);
+        driver.searchResults.clickCategory(GEO);
         driver.searchResults.clickItem(geoID);
-        System.out.println(driver.geoCard.getName());
-        System.out.println("clickAddress");
+
+        driver.geoCard.clickFirm(firmID);
+        driver.firmCard.clickAddress();
+
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+        assertLeafletMarkerPosition(expectedCzarTransform);
+    }
+
+    @Test
+    public void lmbao03() {
+        LOG.info("lmbao-03 started");
+
+        driver.homepage();
+
+        driver.searchFor(searchString);
+        driver.searchResults.clickCategory(GEO);
+        driver.searchResults.clickItem(geoID);
+        LOG.info(driver.geoCard.getName());
+
         driver.geoCard.clickAddress();
 
-        System.out.println("before close");
-//        Thread.sleep(5000);
-        driver.geoCard.close();
-        System.out.println("after close");
-
-        driver.searchResults.clickCategory(DGDriver.SearchResults.FIRMS);
+        driver.searchResults.clickCategory(FIRMS);
         driver.searchResults.clickItem(firmID);
 //        driver.findElement(By.linkText("Новосибирск-Главный, железнодорожный вокзал")).click();
 //        driver.clickCurrentFirmCardAddress();
-        System.out.println(driver.firmCard.getName());
+        LOG.info(driver.firmCard.getName());
 
         driver.firmCard.clickAddress();
 
-        Thread.sleep(1000);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         Vector3d markerTransform = driver.leafletMarker.getCzarTransform();
 
 
-        String actual = markerTransform.toString();
-        System.out.println(actual);
-        Assert.assertTrue(markerTransform.inRange(expectedCzarTransform, 2));
+        assertLeafletMarkerPosition(expectedCzarTransform);
 
-        System.out.print("finished");
-
-        Thread.sleep(180000);
+        LOG.info("lmbao-03 finished");
     }
 
     @After
