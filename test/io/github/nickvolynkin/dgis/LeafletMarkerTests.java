@@ -6,45 +6,73 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
-import org.openqa.selenium.NoAlertPresentException;
-import org.openqa.selenium.NoSuchElementException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.openqa.selenium.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static io.github.nickvolynkin.dgis.DGDriver.SearchResults.*;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 /**
  * Leaflet marker behaviour on ambiguous objects.
  */
+@RunWith(Parameterized.class)
 public class LeafletMarkerTests {
 
     public static final int ALLOWED_RANGE = 5;
     private static final Logger LOG = LoggerFactory.getLogger(LeafletMarkerTests.class);
 
-    //DATA
+    Vector3d expectedCzarTransform;
+    private DGDriver driver;
+    private boolean acceptNextAlert = true;
+
     /**
      * используемый поисковый запрос
      */
-    String searchString;
+    @Parameterized.Parameter(0)
+    public String searchString;
+
     /**
      * ID организации
      */
-    String firmID;
+    @Parameterized.Parameter(1)
+    public String firmID;
     /**
      * ID здания
      */
-    String geoID;
-    Vector3d expectedCzarTransform;
-    //END OF DATA
+    @Parameterized.Parameter(2)
+    public String geoID;
+
+    @Parameterized.Parameter(3)
+    public int expectedTransformX;
+
+    @Parameterized.Parameter(4)
+    public int expectedTransformY;
+
+    @Parameterized.Parameter(5)
+    public int expectedTransformZ;
 
 
-    private DGDriver driver;
-    //    private StringBuffer verificationErrors = new StringBuffer();
-    private boolean acceptNextAlert = true;
+
+
+    @Parameterized.Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][]{
+                /*{searchString, firmID, geoID, x, y, z}*/
+                {"главный вокзал", "141265769369926", "141373143526113", 767, 289, 0},
+                {"цирк", "141265769338191", "141373143518884", 935, 289, 0},
+                {"оперный", "141265769360673", "141373143521691", 767, 289, 0},
+                {"старый дом", "141265769360664", "141373143532548", 767, 289, 0},
+                {"сансити", "141265770417218", "141373143572328", 767, 289, 0},
+        });
+    }
+
+
 
     @Before
     public void setUp() throws Exception {
@@ -52,13 +80,13 @@ public class LeafletMarkerTests {
         driver.manage().timeouts().implicitlyWait(1000, TimeUnit.SECONDS);
         LogManager.getRootLogger().setLevel(Level.INFO);
 
-        searchString = "главный вокзал";
-        firmID = "141265769369926";
-        geoID = "141373143526113";
-        expectedCzarTransform = new Vector3d(769, 289, 0);
+//        searchString = "главный вокзал";
+//        firmID = "141265769369926";
+//        geoID = "141373143526113";
+        expectedCzarTransform = new Vector3d(expectedTransformX, expectedTransformY, expectedTransformZ);
     }
 
-//    @Test
+    //    @Test
     public void standardTransform() {
         driver.homepage();
 
@@ -74,6 +102,7 @@ public class LeafletMarkerTests {
 
         driver.homepage();
         driver.searchFor(searchString);
+        driver.searchResults.tryCategory(FIRMS);
         driver.searchResults.clickItem(firmID);
         LOG.info("actual firm name: " + driver.firmCard.getName());
         driver.firmCard.clickAddress();
@@ -81,8 +110,11 @@ public class LeafletMarkerTests {
         assertLeafletMarkerPosition(expectedCzarTransform);
 
         LOG.info("lmbao-01 finished");
-
-//        Thread.sleep(180000);
+//        try {
+//            Thread.sleep(180000);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void assertLeafletMarkerPosition(Vector3d expectedTransform) {
@@ -97,7 +129,7 @@ public class LeafletMarkerTests {
         driver.homepage();
 
         driver.searchFor(searchString);
-        driver.searchResults.clickCategory(GEO);
+        driver.searchResults.tryCategory(GEO);
         driver.searchResults.clickItem(geoID);
 
         driver.geoCard.clickFirm(firmID);
@@ -120,7 +152,7 @@ public class LeafletMarkerTests {
         driver.homepage();
 
         driver.searchFor(searchString);
-        driver.searchResults.clickCategory(GEO);
+        driver.searchResults.tryCategory(GEO);
         driver.searchResults.clickItem(geoID);
         LOG.info(driver.geoCard.getName());
 
