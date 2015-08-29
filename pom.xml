@@ -1,21 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-        <modelVersion>4.0.0</modelVersion>
-        <groupId>2GisTest</groupId>
-        <artifactId>2GisTest</artifactId>
-        <version>1.0-SNAPSHOT</version>
-        <dependencies>
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-java</artifactId>
-                <version>2.47.0</version>
-            </dependency>
-            <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
-                <version>4.12</version>
-            </dependency>
-        </dependencies>
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>2GisTest</groupId>
+    <artifactId>2GisTest</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <log4j.slf4j.version>1.7.5</log4j.slf4j.version>
+        <junit.version>4.12</junit.version>
+
+        <!--Explicitly target to Java 8-->
+        <java.version>1.8</java.version>
+
+        <!--Update Checkstyle/Findbugs/PMD to recognize Java 8 - lambdas, diamonds etc-->
+        <maven-checkstyle-plugin.version>2.13</maven-checkstyle-plugin.version>
+        <checkstyle.version>6.0</checkstyle.version>
+        <maven.findbugs.plugin.version>3.0.0</maven.findbugs.plugin.version>
+        <maven.pmd.plugin.version>3.2</maven.pmd.plugin.version>
+
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>2.47.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${log4j.slf4j.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.2</version>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+
+            <!--Updated Checkstyle/Findbugs/PMD references-->
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>${maven-checkstyle-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>${checkstyle.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>${maven.findbugs.plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven.pmd.plugin.version}</version>
+            </plugin>
+
+        </plugins>
+    </build>
 </project>

@@ -1,7 +1,10 @@
+package io.github.nickvolynkin.dgis;
+
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,7 +22,9 @@ public class DGDriver extends FirefoxDriver {
     private static final Pattern yPattern = Pattern.compile(translateY);
 
     public final SearchResults searchResults = new SearchResults();
-    public final FirmCard firmCard = new FirmCard();
+    public final Card firmCard = new Card("firmCard__name","firmCard__addressLink", "/firm/" );
+    public final Card geoCard = new Card("geoCard2__name","geoCard2__addressLink", "/geo/" );
+    public final LeafletMarker leafletMarker = new LeafletMarker();
 
     public void searchFor(final String searchString) throws InterruptedException {
         findElement(By.name("search[query]")).clear();
@@ -29,46 +34,13 @@ public class DGDriver extends FirefoxDriver {
 //        System.out.println("Submit");
     }
 
-    public Vector3d getCzarMarkerTransform() {
-        WebElement leafletMapPane = findElement(By.className("leaflet-map-pane"));
-        Vector3d mapPaneTransform = getTransform3d(leafletMapPane);
-//        System.out.println(mapPaneTransform);
-
-        WebElement leafletMarker = findElement(By.className("_czar"));
-        Vector3d markerTransform = getTransform3d(leafletMarker);
-
-        return mapPaneTransform.plus(markerTransform);
-    }
-
-    public class FirmCard {
-        private WebElement findAddressLink() {
-            return findElement(By.className("firmCard__addressLink"));
-        }
-
-        public void clickAddress() {
-            findAddressLink().click();
-        }
-
-        public String getFirmName() {
-            return findElement(By.className("firmCard__name")).getText();
-        }
-
-        public void openByDirectLink(String firmNumber) {
-//        http://2gis.ru/novosibirsk/firm/141265769369926/
-
-            get(baseUrl + "/firm/" + firmNumber);
-        }
-    }
-
-
-
-
     public void homepage() {
         get(baseUrl);
     }
 
     public Vector3d getTransform3d(final WebElement webElement) {
         String elementStyle = webElement.getAttribute("style");
+//        System.out.println(elementStyle + " " + webElement);
 
         int x = getTransformDimension(elementStyle, xPattern);
         int y = getTransformDimension(elementStyle, yPattern);
@@ -87,6 +59,64 @@ public class DGDriver extends FirefoxDriver {
         return dimension;
     }
 
+    public class LeafletMarker {
+
+        public Vector3d getCzarTransform() {
+            WebElement leafletMapPane = findElement(By.className("leaflet-map-pane"));
+            Vector3d mapPaneTransform = getTransform3d(leafletMapPane);
+            //        System.out.println(mapPaneTransform);
+
+            WebElement leafletMarker = findElement(By.className("_czar"));
+            Vector3d markerTransform = getTransform3d(leafletMarker);
+
+            return mapPaneTransform.plus(markerTransform);
+        }
+    }
+
+    public class Card {
+
+//        public static final String NAME_HEADER_CLASS = "firmCard__name";
+//        public static final String ADDRESS_LINK_CLASS = "firmCard__addressLink";
+//        public static final String URL_ID_PREFIX = "/firm/";
+
+        public final String NAME_HEADER_CLASS;
+        public final String ADDRESS_LINK_CLASS;
+        public final String URL_ID_PREFIX;
+
+        private Card(final String NAME_HEADER_CLASS, final String ADDRESS_LINK_CLASS, final String URL_ID_PREFIX) {
+            this.NAME_HEADER_CLASS = NAME_HEADER_CLASS;
+            this.ADDRESS_LINK_CLASS = ADDRESS_LINK_CLASS;
+            this.URL_ID_PREFIX = URL_ID_PREFIX;
+        }
+
+
+        public void clickAddress() {
+            findElement(By.className(ADDRESS_LINK_CLASS)).click();
+        }
+
+        public void close() {
+            System.out.println("close");
+//            WebElement close = findElement(By.className("_close"));
+            List<WebElement> controlButtons = findElements(By.className("frame__controlsButton"));
+            for (WebElement webElement : controlButtons) {
+                System.out.println(webElement);
+            }
+//            System.out.println(close);
+//            close.click();
+        }
+
+        public String getName() {
+            return findElement(By.className(NAME_HEADER_CLASS)).getText();
+        }
+
+        public void openByDirectLink(String objectID) {
+//        http://2gis.ru/novosibirsk/firm/141265769369926/
+
+            get(baseUrl + URL_ID_PREFIX + objectID);
+        }
+    }
+
+
     public class SearchResults {
         public static final String TRANSPORT = "transport";
         public static final String GEO = "geo";
@@ -100,7 +130,7 @@ public class DGDriver extends FirefoxDriver {
             searched.click();
         }
 
-        public void clickFirm(String key) {
+        public void clickItem(String key) {
             String firmClass = "miniCard__headerTitle";
             String firmAttribute = "href";
             WebElement searched = getFirstOcurrence(firmClass, firmAttribute, key);
@@ -110,7 +140,7 @@ public class DGDriver extends FirefoxDriver {
         private WebElement getFirstOcurrence(String className, String attributeName, String searchedValue) {
             for (WebElement element : findElements(By.className(className))) {
                 String actualValue = element.getAttribute(attributeName);
-                System.out.println(element + " – " + actualValue + ".");
+//                System.out.println(element + " – " + actualValue + ".");
                 if (actualValue.contains(searchedValue)) {
                     return element;
                 }

@@ -1,6 +1,4 @@
-import org.openqa.selenium.WebElement;
-
-import java.util.Vector;
+package io.github.nickvolynkin.dgis;
 
 /**
  * Created by nickvolynkin on 28/08/15.
