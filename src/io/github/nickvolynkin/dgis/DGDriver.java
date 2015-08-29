@@ -19,7 +19,7 @@ public class DGDriver extends FirefoxDriver {
     private static final String translateX = "translate3d\\((.*?)px,";
     private static final Pattern xPattern = Pattern.compile(translateX);
 
-    private static final String translateY = "translate3d\\([0-9]+px, (.*?)px,";
+    private static final String translateY = "translate3d\\(-?[0-9]+px, (.*?)px,";
     private static final Pattern yPattern = Pattern.compile(translateY);
 
     public final SearchResults searchResults = new SearchResults();
@@ -43,16 +43,29 @@ public class DGDriver extends FirefoxDriver {
         get(baseUrl);
     }
 
-    private WebElement getFirstOccurrence(String className, String attributeName, String searchedValue) {
+    private WebElement sureGetFirstOccurrence(String className, String attributeName, String searchedValue) {
+        WebElement element = tryGetFirstOccurrence(className, attributeName, searchedValue);
+
+        if (element != null) {
+            return element;
+        }
+
+        throw new IllegalStateException("no link was found of class " + className +
+                " where attribute " + attributeName + " equals " + searchedValue);
+    }
+
+    private WebElement tryGetFirstOccurrence(String className, String attributeName, String searchedValue) {
+
         for (WebElement element : findElements(By.className(className))) {
             String actualValue = element.getAttribute(attributeName);
-//                System.out.println(element + " – " + actualValue + ".");
             if (actualValue.contains(searchedValue)) {
+                LOG.info("tryGetFirstOccurrence >> " + element);
                 return element;
             }
         }
 
-        throw new IllegalStateException("no link was found of class " + className + " where attribute " + attributeName + " equals " + searchedValue);
+        LOG.info("tryGetFirstOccurrence >> " + null);
+        return null;
     }
 
     public class LeafletMarker {
@@ -116,7 +129,7 @@ public class DGDriver extends FirefoxDriver {
 
             String firmClass = "geoCard2__listItemNameLink";
             String firmAttribute = "href";
-            WebElement searched = getFirstOccurrence(firmClass, firmAttribute, key);
+            WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, key);
             searched.click();
         }
 
@@ -149,20 +162,28 @@ public class DGDriver extends FirefoxDriver {
         public static final String TRANSPORT = "transport";
         public static final String GEO = "geo";
         public static final String FIRMS = "firms";
-
+        static final String categoryClass = "wizard__moreLink";
+        static final String categoryAttribute = "data-mode";
+        static final String firmClass = "miniCard__headerTitle";
+        static final String firmAttribute = "href";
 
         public void clickCategory(String key) {
-            String categoryClass = "wizard__moreLink";
-            String categoryAttribute = "data-mode";
-            WebElement searched = getFirstOccurrence(categoryClass, categoryAttribute, key);
+
+            WebElement searched = sureGetFirstOccurrence(categoryClass, categoryAttribute, key);
             searched.click();
         }
 
         public void clickItem(String key) {
-            String firmClass = "miniCard__headerTitle";
-            String firmAttribute = "href";
-            WebElement searched = getFirstOccurrence(firmClass, firmAttribute, key);
+
+            WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, key);
             searched.click();
+        }
+
+        public void tryCategory(String key) {
+            WebElement searched = tryGetFirstOccurrence(categoryClass, categoryAttribute, key);
+            if (searched!= null) {
+                searched.click();
+            }
         }
 
 
