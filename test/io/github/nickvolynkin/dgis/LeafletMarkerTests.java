@@ -12,7 +12,7 @@ import org.openqa.selenium.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.github.nickvolynkin.dgis.DGDriver.SearchResults.*;
+import static io.github.nickvolynkin.dgis.DGDriver.SearchCategory.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,17 +26,11 @@ public class LeafletMarkerTests {
 
     public static final int ALLOWED_RANGE = 5;
     private static final Logger LOG = LoggerFactory.getLogger(LeafletMarkerTests.class);
-
-    Vector3d expectedCzarTransform;
-    private DGDriver driver;
-    private boolean acceptNextAlert = true;
-
     /**
      * используемый поисковый запрос
      */
     @Parameterized.Parameter(0)
     public String searchString;
-
     /**
      * ID организации
      */
@@ -47,20 +41,17 @@ public class LeafletMarkerTests {
      */
     @Parameterized.Parameter(2)
     public String geoID;
-
     @Parameterized.Parameter(3)
     public int expectedTransformX;
-
     @Parameterized.Parameter(4)
     public int expectedTransformY;
-
     @Parameterized.Parameter(5)
     public int expectedTransformZ;
+    Vector3d expectedCzarTransform;
+    private DGDriver driver;
+    private boolean acceptNextAlert = true;
 
-
-
-
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{index}: {0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
                 /*{searchString, firmID, geoID, x, y, z}*/
@@ -68,10 +59,9 @@ public class LeafletMarkerTests {
                 {"цирк", "141265769338191", "141373143518884", 935, 289, 0},
                 {"оперный", "141265769360673", "141373143521691", 767, 289, 0},
                 {"старый дом", "141265769360664", "141373143532548", 767, 289, 0},
-                {"сансити", "141265770417218", "141373143572328", 767, 289, 0},
+//                {"сансити", "141265770417218", "141373143572328", 767, 289, 0},
         });
     }
-
 
 
     @Before
@@ -89,7 +79,6 @@ public class LeafletMarkerTests {
     //    @Test
     public void standardTransform() {
         driver.homepage();
-
         driver.firmCard.openByDirectLink(firmID);
         driver.firmCard.clickAddress();
         Vector3d czarTransform = driver.leafletMarker.getCzarTransform();
@@ -98,34 +87,21 @@ public class LeafletMarkerTests {
 
     @Test
     public void lmbao01() {
-        LOG.info("lmbao-01 started");
 
         driver.homepage();
+
         driver.searchFor(searchString);
         driver.searchResults.tryCategory(FIRMS);
         driver.searchResults.clickItem(firmID);
-        LOG.info("actual firm name: " + driver.firmCard.getName());
         driver.firmCard.clickAddress();
 
         assertLeafletMarkerPosition(expectedCzarTransform);
 
-        LOG.info("lmbao-01 finished");
-//        try {
-//            Thread.sleep(180000);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-    }
-
-    private void assertLeafletMarkerPosition(Vector3d expectedTransform) {
-        Vector3d markerTransform = driver.leafletMarker.getCzarTransform();
-        LOG.info("actual transform3d: " + markerTransform.toString());
-        LOG.info("expected transform3d: " + expectedTransform.toString());
-        Assert.assertTrue(markerTransform.inRange(expectedTransform, ALLOWED_RANGE));
     }
 
     @Test
     public void lmbao02() {
+
         driver.homepage();
 
         driver.searchFor(searchString);
@@ -147,23 +123,17 @@ public class LeafletMarkerTests {
 
     @Test
     public void lmbao03() {
-        LOG.info("lmbao-03 started");
 
         driver.homepage();
 
         driver.searchFor(searchString);
         driver.searchResults.tryCategory(GEO);
         driver.searchResults.clickItem(geoID);
-        LOG.info(driver.geoCard.getName());
 
         driver.geoCard.clickAddress();
 
         driver.searchResults.clickCategory(FIRMS);
         driver.searchResults.clickItem(firmID);
-//        driver.findElement(By.linkText("Новосибирск-Главный, железнодорожный вокзал")).click();
-//        driver.clickCurrentFirmCardAddress();
-        LOG.info(driver.firmCard.getName());
-
         driver.firmCard.clickAddress();
 
         try {
@@ -171,12 +141,22 @@ public class LeafletMarkerTests {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        Vector3d markerTransform = driver.leafletMarker.getCzarTransform();
-
 
         assertLeafletMarkerPosition(expectedCzarTransform);
 
-        LOG.info("lmbao-03 finished");
+//        LOG.info("lmbao-03 finished");
+    }
+
+    private void assertLeafletMarkerPosition(Vector3d expectedTransform) {
+        Vector3d markerTransform = driver.leafletMarker.getCzarTransform();
+
+        driver.leafletMarker.getCzarMarker();
+//        driver.getScreenshotAs(OutputType<PNG>)
+
+        LOG.info("проверить координаты указателя карты:");
+        LOG.info("ожидаемый результат transform3d: " + expectedTransform.toString());
+        LOG.info("полученный результат transform3d: " + markerTransform.toString());
+        Assert.assertTrue(markerTransform.inRange(expectedTransform, ALLOWED_RANGE));
     }
 
     @After
