@@ -1,6 +1,6 @@
 # 2gis-automated-testing
 
-Тест-комплект для maps.2gis.ru, выполненный в Selenium Webdriver (Firefox).
+Автоматизированные тесты для maps.2gis.ru на основе Selenium Webdriver (Firefox).
 
 Включает в себя:
 
@@ -10,4 +10,4 @@
     * В виде тест-кейсов для мануального тестирования.
     * В виде data-driven тестов на JUnit, использующих фреймворк.
 
-Документация расположена на wiki-страницах репозитория.
+[Документация расположена на wiki-страницах репозитория.](https://github.com/NickVolynkin/2gis-automated-testing/wiki)
