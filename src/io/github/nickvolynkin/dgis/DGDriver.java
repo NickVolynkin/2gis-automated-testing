@@ -23,6 +23,8 @@ public class DGDriver extends FirefoxDriver {
     public final Card geoCard = new Card("geoCard2__name", "geoCard2__addressLink", "/geo/");
     public final LeafletMarker leafletMarker = new LeafletMarker();
 
+
+
     public void searchFor(final String searchString) /*throws InterruptedException*/ {
         LOG.info("В строку поиска ввести \"" + searchString + "\" и нажать кнопку поиска");
         findElement(By.name("search[query]")).clear();
@@ -72,6 +74,29 @@ public class DGDriver extends FirefoxDriver {
         } catch (NoSuchElementException e) {
             return false;
         }
+    }
+
+    public enum SearchCategory {
+
+        GEO("места на карте", "geo"),
+        FIRMS("организации", "firms"),
+        TRANSPORT("транспорт", "transport");
+
+        public final String name;
+        public final String attribute;
+
+        SearchCategory(String name, String attribute) {
+            this.name = name;
+            this.attribute = attribute;
+        }
+
+
+        @Override
+        public String toString() {
+            return name;
+        }
+
+
     }
 
     public class LeafletMarker {
@@ -194,7 +219,7 @@ public class DGDriver extends FirefoxDriver {
         }
 
         public void tryCategory(SearchCategory key) {
-            LOG.info("Если возможно, переключиться на категорию \"" + key.name+ "\"");
+            LOG.info("Если возможно, переключиться на категорию \"" + key.name + "\"");
 
             WebElement searched = tryGetFirstOccurrence(categoryClass, categoryAttribute, key.attribute);
             if (searched != null) {
@@ -203,27 +228,5 @@ public class DGDriver extends FirefoxDriver {
         }
     }
 
-    public enum SearchCategory {
-
-        GEO("места на карте", "geo"),
-        FIRMS("организации", "firms"),
-        TRANSPORT("транспорт", "transport");
-
-        public final String name;
-        public final String attribute;
-
-        SearchCategory(String name, String attribute) {
-            this.name = name;
-            this.attribute = attribute;
-        }
-
-
-        @Override
-        public String toString() {
-            return name;
-        }
-
-
-    }
 
 }

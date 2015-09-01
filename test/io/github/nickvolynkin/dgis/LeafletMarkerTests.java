@@ -86,7 +86,7 @@ public class LeafletMarkerTests {
     }
 
     @Test
-    public void lmbao01() {
+    public void test1() {
 
         driver.homepage();
 
@@ -100,7 +100,7 @@ public class LeafletMarkerTests {
     }
 
     @Test
-    public void lmbao02() {
+    public void test2() {
 
         driver.homepage();
 
@@ -122,7 +122,7 @@ public class LeafletMarkerTests {
     }
 
     @Test
-    public void lmbao03() {
+    public void test3() {
 
         driver.homepage();
 
