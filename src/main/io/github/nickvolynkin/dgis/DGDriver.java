@@ -18,17 +18,22 @@ public class DGDriver extends FirefoxDriver {
     public static final String baseUrl = "http://2gis.ru/novosibirsk";
     private static final Logger LOG = LoggerFactory.getLogger(DGDriver.class);
 
+
     public final SearchResults searchResults = new SearchResults();
     public final Card firmCard = new Card("firmCard__name", "firmCard__addressLink", "/firm/");
     public final Card geoCard = new Card("geoCard2__name", "geoCard2__addressLink", "/geo/");
     public final LeafletMarker leafletMarker = new LeafletMarker();
 
 
-
-    public void searchFor(final String searchString) /*throws InterruptedException*/ {
-        LOG.info("В строку поиска ввести \"" + searchString + "\" и нажать кнопку поиска");
+    /**
+     * Search for the query. Uses the search text box (not a direct link)
+     *
+     * @param query the search query.
+     */
+    public void searchFor(final String query) /*throws InterruptedException*/ {
+        LOG.info("В строку поиска ввести \"" + query + "\" и нажать кнопку поиска");
         findElement(By.name("search[query]")).clear();
-        findElement(By.name("search[query]")).sendKeys(searchString);
+        findElement(By.name("search[query]")).sendKeys(query);
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
@@ -37,11 +42,23 @@ public class DGDriver extends FirefoxDriver {
         findElement(By.name("search[query]")).submit();
     }
 
+    /**
+     * Open the homepage (currently 2gis.ru/novosibirsk)
+     */
     public void homepage() {
         LOG.info("Открыть страницу " + baseUrl);
         get(baseUrl);
     }
 
+    /**
+     * Get the first occurrence of a WebElement and raise an exception if it was not found.
+     *
+     * @param className     required element's class name
+     * @param attributeName the attribute to filter by
+     * @param searchedValue the required attribute value
+     * @return the searched WebElement
+     * @throws IllegalStateException if the element was not found, so probably a wrong page is open
+     */
     private WebElement sureGetFirstOccurrence(String className, String attributeName, String searchedValue) {
         WebElement element = tryGetFirstOccurrence(className, attributeName, searchedValue);
 
@@ -53,6 +70,14 @@ public class DGDriver extends FirefoxDriver {
                 " where attribute " + attributeName + " equals " + searchedValue);
     }
 
+    /**
+     * Get the firs occurrence of a WebElement or null, if there are none.
+     *
+     * @param className     required element's class name
+     * @param attributeName the attribute to filter by
+     * @param searchedValue the required attribute value
+     * @return the searched WebElement
+     */
     private WebElement tryGetFirstOccurrence(String className, String attributeName, String searchedValue) {
 
         for (WebElement element : findElements(By.className(className))) {
@@ -67,6 +92,11 @@ public class DGDriver extends FirefoxDriver {
         return null;
     }
 
+    /**
+     * Check if the element is present on the webpage.
+     *
+     * @return true if the element is present, false otherwise
+     */
     private boolean isElementPresent(By by) {
         try {
             findElement(by);
@@ -76,10 +106,24 @@ public class DGDriver extends FirefoxDriver {
         }
     }
 
+
+    /**
+     * Possible categories of all objects on maps.2gis.ru
+     */
     public enum SearchCategory {
 
+        /**
+         * Geography objects: buildings etc.
+         */
         GEO("места на карте", "geo"),
+        /**
+         * Organization objects.
+         */
         FIRMS("организации", "firms"),
+
+        /**
+         * Transport objects: bus stops, train stations etc.
+         */
         TRANSPORT("транспорт", "transport");
 
         public final String name;
@@ -99,10 +143,18 @@ public class DGDriver extends FirefoxDriver {
 
     }
 
+    /**
+     * Instuments for operating the leaflet marker, pointing at certain objects on the map
+     */
     public class LeafletMarker {
         public static final String CZAR = "_czar";
         private final Pattern transform3dPattern = Pattern.compile("translate3d\\((.*?)px, (.*?)px, (.*?)px");
 
+        /**
+         * Get the absolute map position of the Czar (big red) leaflet marker
+         *
+         * @return a Vector3d, describing the map position of Czar leaflet marker
+         */
         public Vector3d getCzarTransform() {
             WebElement leafletMapPane = findElement(By.className("leaflet-map-pane"));
             Vector3d mapPaneTransform = leafletMarker.getTransform3d(leafletMapPane);
@@ -114,14 +166,31 @@ public class DGDriver extends FirefoxDriver {
             return mapPaneTransform.plus(markerTransform);
         }
 
-        public boolean isCzarPrezent() {
+        /**
+         * Check if the Czar leaflet marker is shown on the map.
+         *
+         * @return true if the czar leaflet marker is shown on the map
+         */
+        public boolean isCzarPresent() {
             return isElementPresent(By.className(CZAR));
         }
 
+
+        /**
+         * Get the WebElement of the czar leaflet marker
+         *
+         * @return stub
+         */
         public WebElement getCzarMarker() {
             return findElement(By.className(CZAR));
         }
 
+        /**
+         * stub
+         *
+         * @param webElement stub
+         * @return stub
+         */
         public Vector3d getTransform3d(final WebElement webElement) {
             String elementStyle = webElement.getAttribute("style");
 
@@ -139,6 +208,9 @@ public class DGDriver extends FirefoxDriver {
 
     }
 
+    /**
+     * Instruments for operating the geo or firm card, shown for each search element.
+     */
     public class Card {
 
         public final String NAME_HEADER_CLASS;
@@ -151,22 +223,33 @@ public class DGDriver extends FirefoxDriver {
             this.URL_ID_PREFIX = URL_ID_PREFIX;
         }
 
+        /**
+         * Click the address link of the card's main object
+         */
         public void clickAddress() {
             WebElement addressLink = findElement(By.className(ADDRESS_LINK_CLASS));
             addressLink.click();
             LOG.info("Перейти по ссылке с адресом \"" + addressLink.getText() + "\"");
         }
 
-        public void clickFirm(String key) {
+        /**
+         * Find and click the link of the card's contained object with a given id.
+         *
+         * @param id stub
+         */
+        public void clickFirm(String id) {
 
             String firmClass = "geoCard2__listItemNameLink";
             String firmAttribute = "href";
-            WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, key);
+            WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, id);
             searched.click();
             LOG.info("Выбрать элемент с названием \"" + searched.getText() + "\" из блока \"Организации в здании\"");
         }
 
-        public void close() {
+        /**
+         * Not implemented yet
+         */
+        private void close() {
             LOG.info("Card.close()");
             List<WebElement> controlButtons = findElements(By.className("frame__controlsButton"));
             for (WebElement webElement : controlButtons) {
@@ -180,6 +263,11 @@ public class DGDriver extends FirefoxDriver {
             }
         }
 
+        /**
+         * get the name of current card's main object
+         *
+         * @return stub
+         */
         public String getName() {
             return findElement(By.className(NAME_HEADER_CLASS)).getText();
         }
@@ -193,6 +281,10 @@ public class DGDriver extends FirefoxDriver {
         }
     }
 
+
+    /**
+     * Instruments for operating search results
+     */
     public class SearchResults {
         public static final String TRANSPORT = "transport";
         public static final String GEO = "geo";
@@ -203,21 +295,37 @@ public class DGDriver extends FirefoxDriver {
         static final String firmClass = "miniCard__headerTitle";
         static final String firmAttribute = "href";
 
-        public void clickCategory(SearchCategory key) {
 
-            LOG.info("Переключиться на категорию \"" + key.name + "\"");
-            WebElement searched = sureGetFirstOccurrence(categoryClass, categoryAttribute, key.attribute);
+        /**
+         * click the link for a search category
+         *
+         * @param category the category to switch to
+         */
+        public void clickCategory(SearchCategory category) {
+
+            LOG.info("Переключиться на категорию \"" + category.name + "\"");
+            WebElement searched = sureGetFirstOccurrence(categoryClass, categoryAttribute, category.attribute);
             searched.click();
 
         }
 
-        public void clickItem(String key) {
+        /**
+         * Find and click the link for a search item with a given id.
+         *
+         * @param id stub
+         */
+        public void clickItem(String id) {
 
-            WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, key);
+            WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, id);
             LOG.info("Из результатов поиска выбрать элемент с названием \"" + searched.getText() + "\"");
             searched.click();
         }
 
+        /**
+         * click the link for a search category, only if it's present.
+         *
+         * @param key stub
+         */
         public void tryCategory(SearchCategory key) {
             LOG.info("Если возможно, переключиться на категорию \"" + key.name + "\"");
 

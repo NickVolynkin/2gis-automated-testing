@@ -1,6 +1,7 @@
 target
+output
 .idea
-test/Selenium*
+src/test/Selenium*
 
 
 *.class
