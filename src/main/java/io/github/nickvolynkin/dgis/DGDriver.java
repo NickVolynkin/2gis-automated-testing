@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * FirefoxDriver extension for testing of maps.2gis.ru
+ *
  * @author Nick Volynkin nick.volynkin@gmail.com
  */
 public class DGDriver extends FirefoxDriver {
@@ -19,9 +21,26 @@ public class DGDriver extends FirefoxDriver {
     private static final Logger LOG = LoggerFactory.getLogger(DGDriver.class);
 
 
+    /**
+     * Use this to access the search results pane on this browser instance.
+     */
     public final SearchResults searchResults = new SearchResults();
+
+
+    /**
+     * Use this to access the firm card on this browser instance.
+     */
     public final Card firmCard = new Card("firmCard__name", "firmCard__addressLink", "/firm/");
+
+    /**
+     * Use this to access the geography object's card on this browser instance.
+     */
+
     public final Card geoCard = new Card("geoCard2__name", "geoCard2__addressLink", "/geo/");
+
+    /**
+     * Use this to access the operations with the leaflet markers on the map.
+     */
     public final LeafletMarker leafletMarker = new LeafletMarker();
 
 
@@ -126,7 +145,15 @@ public class DGDriver extends FirefoxDriver {
          */
         TRANSPORT("транспорт", "transport");
 
+
+        /**
+         * The category name, human-readable
+         */
         public final String name;
+
+        /**
+         * The category HTML attribute, used for identification
+         */
         public final String attribute;
 
         SearchCategory(String name, String attribute) {
@@ -135,6 +162,9 @@ public class DGDriver extends FirefoxDriver {
         }
 
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         public String toString() {
             return name;
@@ -144,7 +174,7 @@ public class DGDriver extends FirefoxDriver {
     }
 
     /**
-     * Instuments for operating the leaflet marker, pointing at certain objects on the map
+     * Instruments for operating the leaflet marker, pointing at certain objects on the map
      */
     public class LeafletMarker {
         public static final String CZAR = "_czar";
@@ -160,7 +190,7 @@ public class DGDriver extends FirefoxDriver {
             Vector3d mapPaneTransform = leafletMarker.getTransform3d(leafletMapPane);
             //        System.out.println(mapPaneTransform);
 
-            WebElement leafletMarker = getCzarMarker();
+            WebElement leafletMarker = findCzarMarker();
             Vector3d markerTransform = getTransform3d(leafletMarker);
 
             return mapPaneTransform.plus(markerTransform);
@@ -177,19 +207,19 @@ public class DGDriver extends FirefoxDriver {
 
 
         /**
-         * Get the WebElement of the czar leaflet marker
+         * Get the WebElement representing the czar leaflet marker
          *
-         * @return stub
+         * @return the WebElement, representing the czar leaflet marker
          */
-        public WebElement getCzarMarker() {
+        public WebElement findCzarMarker() {
             return findElement(By.className(CZAR));
         }
 
         /**
-         * stub
+         * Get the transform3d value from the style attribute of given webelement
          *
-         * @param webElement stub
-         * @return stub
+         * @param webElement the element to get transform3d from
+         * @return transform3d value from the style attribute
          */
         public Vector3d getTransform3d(final WebElement webElement) {
             String elementStyle = webElement.getAttribute("style");
@@ -233,11 +263,12 @@ public class DGDriver extends FirefoxDriver {
         }
 
         /**
-         * Find and click the link of the card's contained object with a given id.
+         * Find and click the link to a firm object with a given id
+         * in the section "Организации в этом здании" of a geo object's card .
          *
-         * @param id stub
+         * @param id the id of a clicked link's firm
          */
-        public void clickFirm(String id) {
+        public void clickFirm(final String id) {
 
             String firmClass = "geoCard2__listItemNameLink";
             String firmAttribute = "href";
@@ -266,7 +297,7 @@ public class DGDriver extends FirefoxDriver {
         /**
          * get the name of current card's main object
          *
-         * @return stub
+         * @return the name of current card's main object
          */
         public String getName() {
             return findElement(By.className(NAME_HEADER_CLASS)).getText();
@@ -301,7 +332,7 @@ public class DGDriver extends FirefoxDriver {
          *
          * @param category the category to switch to
          */
-        public void clickCategory(SearchCategory category) {
+        public void clickCategory(final SearchCategory category) {
 
             LOG.info("Переключиться на категорию \"" + category.name + "\"");
             WebElement searched = sureGetFirstOccurrence(categoryClass, categoryAttribute, category.attribute);
@@ -312,9 +343,9 @@ public class DGDriver extends FirefoxDriver {
         /**
          * Find and click the link for a search item with a given id.
          *
-         * @param id stub
+         * @param id the id of a clicked link's firm
          */
-        public void clickItem(String id) {
+        public void clickItem(final String id) {
 
             WebElement searched = sureGetFirstOccurrence(firmClass, firmAttribute, id);
             LOG.info("Из результатов поиска выбрать элемент с названием \"" + searched.getText() + "\"");
@@ -322,11 +353,11 @@ public class DGDriver extends FirefoxDriver {
         }
 
         /**
-         * click the link for a search category, only if it's present.
+         * Click the link for a search category, only if it's present.
          *
-         * @param key stub
+         * @param key the category to open
          */
-        public void tryCategory(SearchCategory key) {
+        public void tryCategory(final SearchCategory key) {
             LOG.info("Если возможно, переключиться на категорию \"" + key.name + "\"");
 
             WebElement searched = tryGetFirstOccurrence(categoryClass, categoryAttribute, key.attribute);

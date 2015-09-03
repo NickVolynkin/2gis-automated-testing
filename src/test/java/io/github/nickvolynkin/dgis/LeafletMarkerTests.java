@@ -69,16 +69,13 @@ public class LeafletMarkerTests {
         driver = new DGDriver(); //extends FirefoxDriver
         driver.manage().timeouts().implicitlyWait(1000, TimeUnit.SECONDS);
         LogManager.getRootLogger().setLevel(Level.INFO);
-
-//        searchString = "главный вокзал";
-//        firmID = "141265769369926";
-//        geoID = "141373143526113";
         expectedCzarTransform = new Vector3d(expectedTransformX, expectedTransformY, expectedTransformZ);
     }
 
     //    @Test
     public void standardTransform() {
         driver.homepage();
+
         driver.firmCard.openByDirectLink(firmID);
         driver.firmCard.clickAddress();
         Vector3d czarTransform = driver.leafletMarker.getCzarTransform();
@@ -94,7 +91,6 @@ public class LeafletMarkerTests {
         driver.searchResults.tryCategory(FIRMS);
         driver.searchResults.clickItem(firmID);
         driver.firmCard.clickAddress();
-
         assertLeafletMarkerPosition(expectedCzarTransform);
 
     }
@@ -107,17 +103,8 @@ public class LeafletMarkerTests {
         driver.searchFor(searchString);
         driver.searchResults.tryCategory(GEO);
         driver.searchResults.clickItem(geoID);
-
         driver.geoCard.clickFirm(firmID);
         driver.firmCard.clickAddress();
-
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-
         assertLeafletMarkerPosition(expectedCzarTransform);
     }
 
@@ -150,7 +137,7 @@ public class LeafletMarkerTests {
     private void assertLeafletMarkerPosition(Vector3d expectedTransform) {
         Vector3d markerTransform = driver.leafletMarker.getCzarTransform();
 
-        driver.leafletMarker.getCzarMarker();
+        driver.leafletMarker.findCzarMarker();
 //        driver.getScreenshotAs(OutputType<PNG>)
 
         LOG.info("проверить координаты указателя карты:");

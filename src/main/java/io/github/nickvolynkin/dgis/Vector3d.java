@@ -1,7 +1,11 @@
 package io.github.nickvolynkin.dgis;
 
 /**
- * Created by nickvolynkin on 28/08/15.
+ * A utility object for storing groups of 3 integers, usually representing coordinates in a 3d-space.
+ * <br>
+ * Instances are immutable.
+ *
+ * @author Nick Volynkin nick.volynkin@gmail.com
  */
 public class Vector3d {
 
@@ -18,15 +22,34 @@ public class Vector3d {
         this.z = z;
     }
 
+    /**
+     * Sum vectors and return a new one.
+     *
+     * @param other the vector to be summed with this
+     * @return a new vector, being a sum of two
+     */
     public Vector3d plus(Vector3d other) {
         return new Vector3d(x + other.x, y + other.y, z + other.z);
     }
 
+    /**
+     * Substract vectors and return a new one.
+     *
+     * @param other the vector to be substracted from this
+     * @return a new vector, being a difference of two
+     */
     public Vector3d minus(Vector3d other) {
         return new Vector3d(x - other.x, y - other.y, z - other.z);
     }
 
-    public Vector3d scalar(Vector3d other, int multiplier) {
+
+    /**
+     * Make a scalar (by-component) multiplication of this vector by a number and return a new one.
+     *
+     * @param multiplier the number to multiply by.
+     * @return a new vector, being a scalar multiplication of this by multiplier
+     */
+    public Vector3d scalar(int multiplier) {
         return new Vector3d(x * multiplier, y * multiplier, z * multiplier);
     }
 
@@ -55,6 +78,14 @@ public class Vector3d {
         }
     }
 
+
+    /**
+     * Check if each two dimensions of this and other vector are withing range from each other (inclusive).
+     *
+     * @param other the vector to compare with
+     * @param range the allowed range (inclusive)
+     * @return true if vectors are within specified range
+     */
     public boolean inRange(final Vector3d other, final int range) {
 
         return (Math.abs(x - other.x) <= range
